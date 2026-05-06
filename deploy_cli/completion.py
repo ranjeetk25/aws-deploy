@@ -20,32 +20,32 @@ def detect_shell() -> str:
 
 
 def _run_click_complete(shell: str) -> str:
-    """Invoke `_DEPLOY_COMPLETE=<shell>_source deploy` and capture script.
+    """Invoke `_AWS_DEPLOY_COMPLETE=<shell>_source aws-deploy` and capture script.
 
     stderr is captured separately so that import-time warnings from boto3
     or other libs don't pollute the completion script written to disk.
     """
     env = os.environ.copy()
-    env["_DEPLOY_COMPLETE"] = f"{shell}_source"
+    env["_AWS_DEPLOY_COMPLETE"] = f"{shell}_source"
     try:
         proc = subprocess.run(
-            ["deploy"], env=env, capture_output=True, check=True, text=True,
+            ["aws-deploy"], env=env, capture_output=True, check=True, text=True,
         )
         return proc.stdout
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         raise DeployError(
             f"Failed to generate completion script for {shell}. "
-            f"Make sure `deploy` is on PATH (try `pipx ensurepath`)."
+            f"Make sure `aws-deploy` is on PATH (try `pipx ensurepath`)."
         ) from e
 
 
 def _completion_target(shell: str) -> Path:
     if shell == "bash":
-        return cfg_mod.CONFIG_DIR / "completions" / "deploy.bash"
+        return cfg_mod.CONFIG_DIR / "completions" / "aws-deploy.bash"
     if shell == "zsh":
-        return cfg_mod.CONFIG_DIR / "completions" / "_deploy"
+        return cfg_mod.CONFIG_DIR / "completions" / "_aws-deploy"
     if shell == "fish":
-        return Path.home() / ".config" / "fish" / "completions" / "deploy.fish"
+        return Path.home() / ".config" / "fish" / "completions" / "aws-deploy.fish"
     raise DeployError(f"Unsupported shell: {shell}")
 
 

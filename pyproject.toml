@@ -29,7 +29,7 @@ dev = [
 ]
 
 [project.scripts]
-deploy = "deploy_cli.main:main"
+aws-deploy = "deploy_cli.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["deploy_cli"]

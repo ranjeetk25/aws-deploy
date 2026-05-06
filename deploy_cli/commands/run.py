@@ -22,7 +22,7 @@ def run(alias: str, do_approve: bool, do_watch: bool):
     cfg = load_config(cfg_mod.CONFIG_PATH)
     if alias not in cfg.pipelines:
         raise UnknownAliasError(
-            f"Unknown alias {alias!r}. Run `deploy list` to see configured aliases."
+            f"Unknown alias {alias!r}. Run `aws-deploy list` to see configured aliases."
         )
     pipe = cfg.pipelines[alias]
     client = get_codepipeline_client(cfg.aws)

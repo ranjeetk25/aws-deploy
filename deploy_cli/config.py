@@ -67,7 +67,7 @@ def config_exists() -> bool:
 
 def load_config(path: Path = CONFIG_PATH) -> Config:
     if not path.exists():
-        raise ConfigError(f"Config file not found at {path}. Run `deploy config init`.")
+        raise ConfigError(f"Config file not found at {path}. Run `aws-deploy config init`.")
     try:
         raw = yaml.safe_load(path.read_text()) or {}
     except yaml.YAMLError as e:

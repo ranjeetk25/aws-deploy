@@ -1,4 +1,4 @@
-# deploy
+# aws-deploy
 
 A `pipx`-installable Python CLI for triggering AWS CodePipeline executions by friendly alias, auto-approving manual approval stages, and tailing live progress. Pipelines are declared up front in a user-managed YAML config; the CLI never operates on pipelines outside that allow-list.
 
@@ -15,15 +15,15 @@ uv venv
 uv pip install -e ".[dev]"
 ```
 
-> **Name conflict?** If `which deploy` resolves to a different script (or shell alias), the new binary won't take precedence. Either remove the conflicting alias (`unalias deploy` and remove the definition from your shell rc) or invoke this CLI as `python -m deploy_cli` / via the absolute path printed by `pipx list`.
+> The binary is installed as `aws-deploy` to avoid clashing with any existing `deploy` script or alias on your `PATH`. Verify with `which aws-deploy`.
 
 ## Quick start
 
 ```bash
-deploy --install-completion          # write shell completion (bash/zsh/fish)
-deploy config init                   # interactive bootstrap → ~/.deploy-cli/config.yaml
-deploy list                          # show configured pipelines
-deploy run admissions-student -aw    # trigger, auto-approve, watch live
+aws-deploy --install-completion          # write shell completion (bash/zsh/fish)
+aws-deploy config init                   # interactive bootstrap → ~/.deploy-cli/config.yaml
+aws-deploy list                          # show configured pipelines
+aws-deploy run admissions-student -aw    # trigger, auto-approve, watch live
 ```
 
 After `--install-completion`, source the printed line in your shell rc to enable tab completion for subcommands and pipeline aliases.
@@ -32,36 +32,36 @@ After `--install-completion`, source the printed line in your shell rc to enable
 
 | Command | Description |
 | --- | --- |
-| `deploy run <alias> [-a] [-w]` | Trigger pipeline execution. `-a/--approve` auto-approves the configured manual stage; `-w/--watch` tails progress until terminal state. |
-| `deploy list` | Show all configured pipelines as a table. |
-| `deploy status <alias>` | Show current stage-by-stage state of a pipeline. |
-| `deploy logs <alias>` | Show event log for the most recent execution. |
-| `deploy config init` | Bootstrap `~/.deploy-cli/config.yaml` interactively. |
-| `deploy config show` | Pretty-print current config as JSON. |
-| `deploy config edit` | Open config in `$EDITOR`; validates on save. |
-| `deploy config add` | Append a new alias (optionally fuzzy-pick from `list_pipelines`). |
-| `deploy config remove <alias>` | Delete an alias. |
-| `deploy --install-completion` | Install shell completion script. |
-| `deploy --version` | Print version. |
-| `deploy --debug ...` | Show raw boto3 tracebacks instead of styled error panels. |
+| `aws-deploy run <alias> [-a] [-w]` | Trigger pipeline execution. `-a/--approve` auto-approves the configured manual stage; `-w/--watch` tails progress until terminal state. |
+| `aws-deploy list` | Show all configured pipelines as a table. |
+| `aws-deploy status <alias>` | Show current stage-by-stage state of a pipeline. |
+| `aws-deploy logs <alias>` | Show event log for the most recent execution. |
+| `aws-deploy config init` | Bootstrap `~/.deploy-cli/config.yaml` interactively. |
+| `aws-deploy config show` | Pretty-print current config as JSON. |
+| `aws-deploy config edit` | Open config in `$EDITOR`; validates on save. |
+| `aws-deploy config add` | Append a new alias (optionally fuzzy-pick from `list_pipelines`). |
+| `aws-deploy config remove <alias>` | Delete an alias. |
+| `aws-deploy --install-completion` | Install shell completion script. |
+| `aws-deploy --version` | Print version. |
+| `aws-deploy --debug ...` | Show raw boto3 tracebacks instead of styled error panels. |
 
 ### Examples
 
 ```bash
 # Trigger and exit (just print execution id)
-deploy run admissions-api
+aws-deploy run admissions-api
 
 # Trigger + auto-approve manual stage + watch live (combined short flags)
-deploy run admissions-student -aw
+aws-deploy run admissions-student -aw
 
 # Inspect what's deployed right now
-deploy status admissions-student
+aws-deploy status admissions-student
 
 # What happened in the last run?
-deploy logs admissions-api
+aws-deploy logs admissions-api
 
 # Add a new pipeline alias by fuzzy-picking from AWS
-deploy config add
+aws-deploy config add
 ```
 
 Exit codes: `0` on success, `1` on `DeployError` or pipeline failure, `130` on Ctrl+C.
@@ -96,11 +96,11 @@ Credentials are cached at `~/.deploy-cli/.cache/creds.json` (mode `0600`) and re
 
 **AWS authentication failed.** Verify `role_arn`, `region`, and that your base profile credentials (or default chain) can call `sts:AssumeRole` on the target role. Re-run with `--debug` for the raw boto3 traceback.
 
-**Pipeline not found.** Your alias points to a pipeline name that the assumed role cannot see in the configured region. Check `deploy config show` and confirm the pipeline exists with `aws codepipeline list-pipelines`.
+**Pipeline not found.** Your alias points to a pipeline name that the assumed role cannot see in the configured region. Check `aws-deploy config show` and confirm the pipeline exists with `aws codepipeline list-pipelines`.
 
 **Pipeline already executing (V1 concurrency).** V1 pipelines surface `InvalidPipelineStateException` rather than queueing. The CLI maps this to a friendly "Pipeline already executing" panel — wait for the current execution to finish, or upgrade the pipeline to V2 (which queues natively).
 
-**Approval stage never reached.** When using `--approve --watch`, the CLI polls for up to 30 minutes for the configured stage/action to enter `pending-approval`. If the pipeline takes longer or never reaches that stage, the command fails with `ApprovalTimeoutError`. Inspect with `deploy status <alias>` to see where the pipeline stalled.
+**Approval stage never reached.** When using `--approve --watch`, the CLI polls for up to 30 minutes for the configured stage/action to enter `pending-approval`. If the pipeline takes longer or never reaches that stage, the command fails with `ApprovalTimeoutError`. Inspect with `aws-deploy status <alias>` to see where the pipeline stalled.
 
 ## Development
 

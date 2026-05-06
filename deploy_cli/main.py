@@ -14,12 +14,12 @@ from .commands.config_cmd import config_group
 
 
 _ERROR_HINTS = {
-    "ConfigError": ("Config error", "Run `deploy config init` or `deploy config edit`."),
-    "UnknownAliasError": ("Unknown alias", "Run `deploy list` to see configured aliases."),
+    "ConfigError": ("Config error", "Run `aws-deploy config init` or `aws-deploy config edit`."),
+    "UnknownAliasError": ("Unknown alias", "Run `aws-deploy list` to see configured aliases."),
     "AWSAuthError": ("AWS authentication failed", "Verify role_arn, region, and base profile credentials."),
-    "PipelineNotFoundError": ("Pipeline not found", "Check `deploy config show`. Alias points to a pipeline AWS doesn't see."),
+    "PipelineNotFoundError": ("Pipeline not found", "Check `aws-deploy config show`. Alias points to a pipeline AWS doesn't see."),
     "ApprovalTimeoutError": ("Approval stage never reached", "Pipeline did not enter pending-approval within 30 minutes."),
-    "ExecutionFailedError": ("Pipeline execution failed", "Inspect `deploy logs <alias>` for the failing action."),
+    "ExecutionFailedError": ("Pipeline execution failed", "Inspect `aws-deploy logs <alias>` for the failing action."),
     "ConcurrencyError": ("Pipeline already executing", "V1 pipelines do not queue. Wait for the current execution to finish."),
 }
 
@@ -74,7 +74,7 @@ def _version_and_exit(ctx, param, value):
 )
 @click.pass_context
 def cli(ctx: click.Context, debug: bool):
-    """deploy — AWS CodePipeline launcher."""
+    """aws-deploy — AWS CodePipeline launcher."""
     ctx.ensure_object(dict)
     ctx.obj["debug"] = debug
     if ctx.invoked_subcommand is None:

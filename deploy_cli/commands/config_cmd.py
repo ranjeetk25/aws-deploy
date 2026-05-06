@@ -48,7 +48,7 @@ def show_cmd():
     """Print current config."""
     if not _cfg_mod.CONFIG_PATH.exists():
         raise ConfigError(
-            f"Config file not found at {_cfg_mod.CONFIG_PATH}. Run `deploy config init`."
+            f"Config file not found at {_cfg_mod.CONFIG_PATH}. Run `aws-deploy config init`."
         )
     cfg = load_config(_cfg_mod.CONFIG_PATH)
     ui.console.print_json(cfg.model_dump_json(indent=2))
@@ -58,7 +58,7 @@ def show_cmd():
 def edit_cmd():
     """Open config in $EDITOR (default vim)."""
     if not _cfg_mod.CONFIG_PATH.exists():
-        raise ConfigError("Config not found. Run `deploy config init`.")
+        raise ConfigError("Config not found. Run `aws-deploy config init`.")
     editor = os.environ.get("EDITOR", "vim")
     subprocess.call([editor, str(_cfg_mod.CONFIG_PATH)])
     load_config(_cfg_mod.CONFIG_PATH)  # validate after edit

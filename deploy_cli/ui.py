@@ -51,9 +51,9 @@ def status_color(status: str) -> str:
 
 
 def render_banner() -> Panel:
-    art = pyfiglet.figlet_format("deploy", font="small")
+    art = pyfiglet.figlet_format("aws-deploy", font="small")
     body = Text(art, style="bold cyan")
-    body.append("\ndeploy — AWS CodePipeline launcher", style="dim")
+    body.append("\naws-deploy — AWS CodePipeline launcher", style="dim")
     return Panel(body, border_style="cyan", padding=(0, 2))
 
 

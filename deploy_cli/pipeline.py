@@ -153,7 +153,7 @@ def find_pending_approval_token(
 
 def approve(
     client, pipeline_name: str, stage: str, action: str, token: str,
-    summary: str = "Auto-approved by deploy CLI",
+    summary: str = "Auto-approved by aws-deploy CLI",
 ) -> None:
     client.put_approval_result(
         pipelineName=pipeline_name,
