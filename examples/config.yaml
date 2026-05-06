@@ -1,0 +1,19 @@
+# Example deploy CLI config. Copy to ~/.deploy-cli/config.yaml or run `deploy config init`.
+
+aws:
+  role_arn: arn:aws:iam::123456789012:role/DeployCliRole
+  region: ap-south-1
+  profile: default                # optional; base creds for the AssumeRole call
+
+pipelines:
+  admissions-student:
+    pipeline_name: admissions-student-ui-production
+    description: Student-facing admissions UI
+    manual_approval:
+      stage: ManualApproval
+      action: ApprovalNeeded
+
+  admissions-api:
+    pipeline_name: admissions-api-production
+    description: Admissions backend API
+    manual_approval: null         # no manual approval gate
