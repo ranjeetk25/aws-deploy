@@ -105,6 +105,17 @@ def get_execution_state(client, pipeline_name: str, execution_id: str) -> Execut
         code = e.response.get("Error", {}).get("Code", "")
         if code in ("PipelineNotFoundException", "ResourceNotFoundException"):
             raise PipelineNotFoundError(f"Pipeline {pipeline_name!r} not found.") from e
+        # AWS sometimes lags between StartPipelineExecution returning an ID
+        # and GetPipelineExecution recognising it. Treat as queued; watch loop retries.
+        if code == "PipelineExecutionNotFoundException":
+            return ExecutionState(
+                execution_id=execution_id,
+                pipeline_name=pipeline_name,
+                status="Queued",
+                start_time=None,
+                last_update_time=None,
+                stages=[],
+            )
         raise
     stages = get_pipeline_state(client, pipeline_name)
     return ExecutionState(
