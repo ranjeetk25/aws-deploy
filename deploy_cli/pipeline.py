@@ -46,6 +46,17 @@ class ExecutionState:
     stages: list[StageStatus]
 
 
+@dataclass
+class InflightApproval:
+    """A current pipeline execution sitting at a manual approval stage with a token ready."""
+    pipeline_name: str
+    pipeline_execution_id: str
+    stage: str
+    action: str
+    token: str
+    last_status_change: Optional[datetime]
+
+
 _TERMINAL = {"Succeeded", "Superseded", "Cancelled", "Failed", "Stopped"}
 
 
@@ -159,6 +170,34 @@ def find_pending_approval_token(
             latest = a.get("latestExecution") or {}
             if latest.get("status") == "InProgress" and latest.get("token"):
                 return latest["token"]
+    return None
+
+
+def find_inflight_approval(
+    client, pipeline_name: str, stage: str, action: str
+) -> Optional[InflightApproval]:
+    """If the pipeline currently has an execution awaiting approval at this
+    stage/action (typical when an auto-trigger fired before the CLI invocation),
+    return its details. Otherwise None.
+    """
+    resp = client.get_pipeline_state(name=pipeline_name)
+    for st in resp.get("stageStates", []):
+        if st.get("stageName") != stage:
+            continue
+        stage_exec = st.get("latestExecution") or {}
+        for a in st.get("actionStates", []):
+            if a.get("actionName") != action:
+                continue
+            latest = a.get("latestExecution") or {}
+            if latest.get("status") == "InProgress" and latest.get("token"):
+                return InflightApproval(
+                    pipeline_name=pipeline_name,
+                    pipeline_execution_id=stage_exec.get("pipelineExecutionId", ""),
+                    stage=stage,
+                    action=action,
+                    token=latest["token"],
+                    last_status_change=latest.get("lastStatusChange"),
+                )
     return None
 
 

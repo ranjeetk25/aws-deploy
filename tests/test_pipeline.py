@@ -123,6 +123,38 @@ def test_poll_for_approval_retries_transient_then_succeeds(monkeypatch):
     assert backoffs[1] >= backoffs[0]  # exponential growth on transient
 
 
+def test_find_inflight_approval_returns_details_when_pending():
+    c = MagicMock()
+    c.get_pipeline_state.return_value = {
+        "stageStates": [{
+            "stageName": "Approve",
+            "latestExecution": {"pipelineExecutionId": "EX-EXISTING", "status": "InProgress"},
+            "actionStates": [{
+                "actionName": "Manual",
+                "latestExecution": {"status": "InProgress", "token": "TOK-X", "lastStatusChange": None},
+            }],
+        }],
+    }
+    inflight = p.find_inflight_approval(c, "pipe-x", "Approve", "Manual")
+    assert inflight is not None
+    assert inflight.pipeline_execution_id == "EX-EXISTING"
+    assert inflight.token == "TOK-X"
+    assert inflight.stage == "Approve"
+    assert inflight.action == "Manual"
+
+
+def test_find_inflight_approval_returns_none_when_no_token():
+    c = MagicMock()
+    c.get_pipeline_state.return_value = _state_without_approval()
+    assert p.find_inflight_approval(c, "pipe-x", "Approve", "Manual") is None
+
+
+def test_find_inflight_approval_returns_none_when_stage_missing():
+    c = MagicMock()
+    c.get_pipeline_state.return_value = {"stageStates": []}
+    assert p.find_inflight_approval(c, "pipe-x", "Approve", "Manual") is None
+
+
 def test_get_execution_state_aggregates(monkeypatch):
     c = MagicMock()
     c.get_pipeline_execution.return_value = {

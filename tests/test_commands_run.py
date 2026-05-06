@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import MagicMock
 from click.testing import CliRunner
 from deploy_cli.commands.run import run as run_cmd
@@ -58,6 +59,94 @@ def test_run_approve_without_manual_approval_warns(tmp_config_dir, sample_config
     res = CliRunner().invoke(run_cmd, ["alpha", "-a"])
     assert "no manual_approval" in res.output.lower() or "ignored" in res.output.lower()
     assert res.exit_code == 0
+
+
+def _setup_beta_with_inflight(tmp_config_dir, sample_config, monkeypatch, *, isatty=True):
+    """Simulate the beta pipeline (manual_approval configured) currently sitting
+    at the approval stage with an existing execution waiting on a token."""
+    save_config(sample_config, tmp_config_dir / "config.yaml")
+    fake = MagicMock()
+    fake.start_pipeline_execution.return_value = {"pipelineExecutionId": "EX-NEW"}
+    fake.get_pipeline_state.return_value = {
+        "stageStates": [{
+            "stageName": "ManualApproval",
+            "latestExecution": {"pipelineExecutionId": "EX-EXISTING", "status": "InProgress"},
+            "actionStates": [{
+                "actionName": "ApprovalNeeded",
+                "latestExecution": {"status": "InProgress", "token": "TOK-EXISTING"},
+            }],
+        }],
+    }
+    fake.get_pipeline_execution.return_value = {
+        "pipelineExecution": {"pipelineExecutionId": "EX-EXISTING", "status": "Succeeded", "pipelineName": "beta-prod"}
+    }
+    monkeypatch.setattr("deploy_cli.commands.run.get_codepipeline_client", lambda cfg: fake)
+    monkeypatch.setattr("deploy_cli.pipeline._sleep", lambda s: None)
+    monkeypatch.setattr("deploy_cli.commands.run._is_interactive", lambda: isatty)
+    return fake
+
+
+def test_run_inflight_approve_existing(tmp_config_dir, sample_config, monkeypatch):
+    """User picks 'approve': existing execution gets approved, no new trigger."""
+    fake = _setup_beta_with_inflight(tmp_config_dir, sample_config, monkeypatch)
+    monkeypatch.setattr(
+        "deploy_cli.commands.run._prompt_inflight_choice", lambda inflight: "approve"
+    )
+    res = CliRunner().invoke(run_cmd, ["beta"])
+    assert res.exit_code == 0, res.output
+    fake.put_approval_result.assert_called_once()
+    kw = fake.put_approval_result.call_args.kwargs
+    assert kw["token"] == "TOK-EXISTING"
+    fake.start_pipeline_execution.assert_not_called()
+
+
+def test_run_inflight_trigger_new(tmp_config_dir, sample_config, monkeypatch):
+    """User picks 'new': existing left alone, new execution triggered."""
+    fake = _setup_beta_with_inflight(tmp_config_dir, sample_config, monkeypatch)
+    monkeypatch.setattr(
+        "deploy_cli.commands.run._prompt_inflight_choice", lambda inflight: "new"
+    )
+    res = CliRunner().invoke(run_cmd, ["beta"])
+    assert res.exit_code == 0, res.output
+    fake.start_pipeline_execution.assert_called_once_with(name="beta-prod")
+    fake.put_approval_result.assert_not_called()
+
+
+def test_run_inflight_cancel(tmp_config_dir, sample_config, monkeypatch):
+    """User picks 'cancel': nothing happens."""
+    fake = _setup_beta_with_inflight(tmp_config_dir, sample_config, monkeypatch)
+    monkeypatch.setattr(
+        "deploy_cli.commands.run._prompt_inflight_choice", lambda inflight: "cancel"
+    )
+    res = CliRunner().invoke(run_cmd, ["beta"])
+    assert res.exit_code == 0
+    fake.start_pipeline_execution.assert_not_called()
+    fake.put_approval_result.assert_not_called()
+
+
+def test_run_force_new_flag_skips_inflight_check(tmp_config_dir, sample_config, monkeypatch):
+    """--new bypasses the prompt even when an inflight pending approval exists."""
+    fake = _setup_beta_with_inflight(tmp_config_dir, sample_config, monkeypatch)
+    # If the prompt were called, this would fail — inflight check should be skipped.
+    monkeypatch.setattr(
+        "deploy_cli.commands.run._prompt_inflight_choice",
+        lambda inflight: pytest.fail("inflight prompt should not be called with --new"),
+    )
+    res = CliRunner().invoke(run_cmd, ["beta", "--new"])
+    assert res.exit_code == 0
+    fake.start_pipeline_execution.assert_called_once_with(name="beta-prod")
+
+
+def test_run_non_tty_skips_inflight_check(tmp_config_dir, sample_config, monkeypatch):
+    """In non-TTY contexts (CI/scripts), inflight prompt is bypassed."""
+    fake = _setup_beta_with_inflight(tmp_config_dir, sample_config, monkeypatch, isatty=False)
+    monkeypatch.setattr(
+        "deploy_cli.commands.run._prompt_inflight_choice",
+        lambda inflight: pytest.fail("inflight prompt should not be called in non-TTY mode"),
+    )
+    res = CliRunner().invoke(run_cmd, ["beta"])
+    assert res.exit_code == 0
+    fake.start_pipeline_execution.assert_called_once_with(name="beta-prod")
 
 
 def test_run_approve_watch_interleaves_approval(tmp_config_dir, sample_config, monkeypatch):

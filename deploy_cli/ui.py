@@ -7,6 +7,29 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 import pyfiglet
+from questionary import Style as _QStyle
+
+
+# High-contrast questionary style shared by every interactive prompt.
+prompt_style = _QStyle([
+    ("qmark", "fg:#5fafff bold"),
+    ("question", "bold"),
+    ("answer", "fg:#5fd700 bold"),
+    ("pointer", "fg:#5fafff bold"),
+    ("highlighted", "fg:#5fafff bold"),
+    ("selected", "fg:#5fd700"),
+    ("separator", "fg:#666666"),
+    ("instruction", "fg:#888888"),
+    ("text", ""),
+    ("disabled", "fg:#858585 italic"),
+    ("completion-menu", "bg:#1c1c1c fg:#dcdcdc"),
+    ("completion-menu.completion", "bg:#1c1c1c fg:#dcdcdc"),
+    ("completion-menu.completion.current", "bg:#5fafff fg:#1c1c1c bold"),
+    ("completion-menu.meta.completion", "bg:#1c1c1c fg:#888888"),
+    ("completion-menu.meta.completion.current", "bg:#5fafff fg:#1c1c1c"),
+    ("scrollbar.background", "bg:#3a3a3a"),
+    ("scrollbar.button", "bg:#5fafff"),
+])
 
 if TYPE_CHECKING:
     from .config import PipelineConfig
