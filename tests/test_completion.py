@@ -1,6 +1,3 @@
-import os
-import subprocess
-from pathlib import Path
 import pytest
 from deploy_cli import completion
 

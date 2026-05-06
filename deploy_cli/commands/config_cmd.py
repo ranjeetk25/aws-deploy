@@ -7,7 +7,7 @@ import questionary
 from ..aws import get_codepipeline_client
 from ..config import (
     Config, AWSConfig, PipelineConfig, ManualApprovalConfig,
-    ensure_config_dir, load_config, save_config, config_exists,
+    ensure_config_dir, load_config, save_config,
 )
 from .. import config as _cfg_mod
 from ..errors import ConfigError
@@ -57,7 +57,7 @@ def edit_cmd():
     editor = os.environ.get("EDITOR", "vim")
     subprocess.call([editor, str(_cfg_mod.CONFIG_PATH)])
     load_config(_cfg_mod.CONFIG_PATH)  # validate after edit
-    ui.console.print(f"[green]✓[/] Config valid")
+    ui.console.print("[green]✓[/] Config valid")
 
 
 @config_group.command(name="add")

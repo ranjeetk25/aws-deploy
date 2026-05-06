@@ -2,9 +2,6 @@ from __future__ import annotations
 import os
 import subprocess
 from pathlib import Path
-from typing import Iterable
-
-import click
 
 from . import config as cfg_mod
 from .errors import DeployError

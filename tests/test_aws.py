@@ -1,16 +1,12 @@
-import json
 import os
 import stat
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
-import boto3
-import pytest
 from moto import mock_aws
 
 from deploy_cli import aws as aws_mod
 from deploy_cli import config as cfg_mod
-from deploy_cli.config import AWSConfig, CACHE_DIR, CREDS_CACHE_PATH
+from deploy_cli.config import AWSConfig
 
 
 def test_cached_creds_is_expiring_true_when_within_5min():

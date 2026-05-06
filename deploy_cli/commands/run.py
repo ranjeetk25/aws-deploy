@@ -6,10 +6,10 @@ from ..aws import get_codepipeline_client
 from ..completion import alias_complete
 from .. import config as cfg_mod
 from ..config import load_config
-from ..errors import ConfigError, ExecutionFailedError, ApprovalTimeoutError
+from ..errors import ConfigError, ExecutionFailedError
 from ..pipeline import (
     start_execution, watch_execution, find_pending_approval_token,
-    approve, poll_for_approval, get_execution_state,
+    approve, poll_for_approval,
 )
 from .. import ui
 
@@ -62,7 +62,7 @@ def run(alias: str, do_approve: bool, do_watch: bool):
 
         final = watch_execution(client, pipe.pipeline_name, execution_id, on_tick=on_tick)
         if final == "Succeeded":
-            ui.console.print(f"[green]✓ Pipeline succeeded[/]")
+            ui.console.print("[green]✓ Pipeline succeeded[/]")
             return
         raise ExecutionFailedError(f"Pipeline ended with status {final}")
 

@@ -3,7 +3,7 @@ from ..aws import get_codepipeline_client
 from ..completion import alias_complete
 from ..config import load_config
 from .. import config as _cfg_mod
-from ..errors import ConfigError, PipelineNotFoundError
+from ..errors import ConfigError
 from ..pipeline import list_action_events
 from .. import ui
 

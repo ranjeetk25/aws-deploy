@@ -1,11 +1,8 @@
-import re
-import textwrap
 import pytest
-from pathlib import Path
 from pydantic import ValidationError
 from deploy_cli.config import (
     Config, AWSConfig, ManualApprovalConfig, PipelineConfig,
-    load_config, save_config, list_alias_names, ensure_config_dir, config_exists,
+    load_config, save_config, list_alias_names,
 )
 from deploy_cli.errors import ConfigError
 

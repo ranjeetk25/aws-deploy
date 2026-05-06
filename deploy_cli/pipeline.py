@@ -2,13 +2,13 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Iterable
+from typing import Optional
 
 from botocore.exceptions import ClientError
 from rich.live import Live
 
 from .errors import (
-    ConcurrencyError, PipelineNotFoundError, ApprovalTimeoutError, DeployError,
+    ConcurrencyError, PipelineNotFoundError, ApprovalTimeoutError,
 )
 from . import ui as ui_mod
 

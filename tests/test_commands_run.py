@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from click.testing import CliRunner
 from deploy_cli.commands.run import run as run_cmd
 from deploy_cli.config import save_config
@@ -34,7 +34,7 @@ def test_run_unknown_alias_errors(tmp_config_dir, sample_config, monkeypatch):
 
 
 def test_run_with_watch_succeeded_exit_0(tmp_config_dir, sample_config, monkeypatch):
-    fake = _setup(tmp_config_dir, sample_config, monkeypatch)
+    _setup(tmp_config_dir, sample_config, monkeypatch)
     monkeypatch.setattr("deploy_cli.commands.run._sleep", lambda s: None)
     res = CliRunner().invoke(run_cmd, ["alpha", "-w"])
     assert res.exit_code == 0

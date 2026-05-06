@@ -1,5 +1,5 @@
 from click.testing import CliRunner
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from deploy_cli.commands.config_cmd import config_group
 
 
@@ -35,9 +35,9 @@ def test_init_via_questionary(tmp_config_dir, monkeypatch):
         False,                                              # add pipeline now?
     ])
     def fake_text(msg, **kw):
-        m = MagicMock(); m.ask = lambda: next(answers); return m
+        m = MagicMock(); m.ask = lambda: next(answers); return m  # noqa: E702
     def fake_confirm(msg, **kw):
-        m = MagicMock(); m.ask = lambda: next(answers); return m
+        m = MagicMock(); m.ask = lambda: next(answers); return m  # noqa: E702
     monkeypatch.setattr("deploy_cli.commands.config_cmd.questionary.text", fake_text)
     monkeypatch.setattr("deploy_cli.commands.config_cmd.questionary.confirm", fake_confirm)
     res = CliRunner().invoke(config_group, ["init"])

@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 import pytest
 
 from deploy_cli import config as cfg_mod
