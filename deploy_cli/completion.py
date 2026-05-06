@@ -20,12 +20,18 @@ def detect_shell() -> str:
 
 
 def _run_click_complete(shell: str) -> str:
-    """Invoke `_DEPLOY_COMPLETE=<shell>_source deploy` and capture script."""
+    """Invoke `_DEPLOY_COMPLETE=<shell>_source deploy` and capture script.
+
+    stderr is captured separately so that import-time warnings from boto3
+    or other libs don't pollute the completion script written to disk.
+    """
     env = os.environ.copy()
     env["_DEPLOY_COMPLETE"] = f"{shell}_source"
     try:
-        out = subprocess.check_output(["deploy"], env=env, stderr=subprocess.STDOUT)
-        return out.decode()
+        proc = subprocess.run(
+            ["deploy"], env=env, capture_output=True, check=True, text=True,
+        )
+        return proc.stdout
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         raise DeployError(
             f"Failed to generate completion script for {shell}. "

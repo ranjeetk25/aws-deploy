@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+import re
 import subprocess
 import click
 import questionary
@@ -13,6 +14,12 @@ from .. import config as _cfg_mod
 from ..errors import ConfigError
 from .. import ui
 
+_ROLE_ARN_RE = re.compile(r"^arn:aws:iam::\d{12}:role/.+$")
+
+
+def _validate_role_arn(v: str):
+    return bool(_ROLE_ARN_RE.match(v)) or "Must match arn:aws:iam::ACCOUNT:role/NAME"
+
 
 @click.group(name="config")
 def config_group():
@@ -25,7 +32,7 @@ def init_cmd():
     ensure_config_dir()
     role_arn = questionary.text(
         "AWS role ARN to assume:",
-        validate=lambda v: v.startswith("arn:aws:iam::") or "Must be an IAM role ARN",
+        validate=_validate_role_arn,
     ).ask()
     region = questionary.text("AWS region:", default="ap-south-1").ask()
     profile = questionary.text("Base AWS profile (optional, blank = default chain):", default="").ask() or None
@@ -40,11 +47,9 @@ def init_cmd():
 def show_cmd():
     """Print current config."""
     if not _cfg_mod.CONFIG_PATH.exists():
-        msg = f"Config file not found at {_cfg_mod.CONFIG_PATH}. Run `deploy config init`."
-        ui.console.print(ui.render_error("Config missing", msg))
-        err = ConfigError(msg)
-        err._rendered = True
-        raise err
+        raise ConfigError(
+            f"Config file not found at {_cfg_mod.CONFIG_PATH}. Run `deploy config init`."
+        )
     cfg = load_config(_cfg_mod.CONFIG_PATH)
     ui.console.print_json(cfg.model_dump_json(indent=2))
 

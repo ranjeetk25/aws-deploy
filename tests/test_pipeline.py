@@ -102,6 +102,27 @@ def test_poll_for_approval_times_out(monkeypatch):
         p.poll_for_approval(c, "pipe-x", "Approve", "Manual", timeout_seconds=2, poll_interval=0)
 
 
+def test_poll_for_approval_retries_transient_then_succeeds(monkeypatch):
+    from botocore.exceptions import ClientError
+    transient = ClientError(
+        {"Error": {"Code": "ThrottlingException", "Message": "slow down"}},
+        "GetPipelineState",
+    )
+    c = MagicMock()
+    c.get_pipeline_state.side_effect = [
+        transient,
+        transient,
+        _state_with_pending_approval(),
+    ]
+    backoffs: list[float] = []
+    monkeypatch.setattr(p, "_sleep", lambda s: backoffs.append(s))
+    monkeypatch.setattr(p, "_now", lambda: 0)  # never time out
+    tok = p.poll_for_approval(c, "pipe-x", "Approve", "Manual", timeout_seconds=999, poll_interval=10)
+    assert tok == "TOK-123"
+    assert len(backoffs) >= 2
+    assert backoffs[1] >= backoffs[0]  # exponential growth on transient
+
+
 def test_get_execution_state_aggregates(monkeypatch):
     c = MagicMock()
     c.get_pipeline_execution.return_value = {

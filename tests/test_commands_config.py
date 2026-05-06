@@ -1,12 +1,13 @@
 from click.testing import CliRunner
 from unittest.mock import MagicMock
 from deploy_cli.commands.config_cmd import config_group
+from deploy_cli.errors import ConfigError
 
 
 def test_show_no_config_renders_error(tmp_config_dir):
     res = CliRunner().invoke(config_group, ["show"])
     assert res.exit_code != 0
-    assert "config" in res.output.lower()
+    assert isinstance(res.exception, ConfigError)
 
 
 def test_show_with_config(tmp_config_dir, sample_config):

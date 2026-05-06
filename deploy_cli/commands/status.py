@@ -3,7 +3,7 @@ from ..aws import get_codepipeline_client
 from ..completion import alias_complete
 from ..config import load_config
 from .. import config as _cfg_mod
-from ..errors import ConfigError
+from ..errors import UnknownAliasError
 from ..pipeline import get_pipeline_state
 from .. import ui
 
@@ -14,7 +14,9 @@ def status(alias: str):
     """Show current pipeline state for ALIAS."""
     cfg = load_config(_cfg_mod.CONFIG_PATH)
     if alias not in cfg.pipelines:
-        raise ConfigError(f"Unknown alias {alias!r}.")
+        raise UnknownAliasError(
+            f"Unknown alias {alias!r}. Run `deploy list` to see configured aliases."
+        )
     pipe = cfg.pipelines[alias]
     client = get_codepipeline_client(cfg.aws)
     with ui.spinner(f"Fetching state for {alias}…"):

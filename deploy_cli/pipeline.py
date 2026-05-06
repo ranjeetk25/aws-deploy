@@ -26,7 +26,6 @@ class ActionStatus:
     status: str
     summary: str = ""
     last_status_change: Optional[datetime] = None
-    type: str = ""
 
 
 @dataclass

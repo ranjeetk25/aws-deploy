@@ -1,23 +1,16 @@
 from __future__ import annotations
-import time
 import click
 
 from ..aws import get_codepipeline_client
 from ..completion import alias_complete
 from .. import config as cfg_mod
 from ..config import load_config
-from ..errors import ConfigError, ExecutionFailedError
+from ..errors import UnknownAliasError, ExecutionFailedError
 from ..pipeline import (
     start_execution, watch_execution, find_pending_approval_token,
     approve, poll_for_approval,
 )
 from .. import ui
-
-_TERMINAL = {"Succeeded", "Superseded", "Cancelled", "Failed", "Stopped"}
-
-
-def _sleep(s: float) -> None:
-    time.sleep(s)
 
 
 @click.command(name="run")
@@ -28,11 +21,9 @@ def run(alias: str, do_approve: bool, do_watch: bool):
     """Trigger pipeline execution for ALIAS."""
     cfg = load_config(cfg_mod.CONFIG_PATH)
     if alias not in cfg.pipelines:
-        msg = f"Unknown alias {alias!r}. Run `deploy list` to see configured aliases."
-        ui.console.print(ui.render_error("Unknown alias", msg))
-        err = ConfigError(msg)
-        err._rendered = True
-        raise err
+        raise UnknownAliasError(
+            f"Unknown alias {alias!r}. Run `deploy list` to see configured aliases."
+        )
     pipe = cfg.pipelines[alias]
     client = get_codepipeline_client(cfg.aws)
 

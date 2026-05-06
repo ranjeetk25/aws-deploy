@@ -15,6 +15,8 @@ uv venv
 uv pip install -e ".[dev]"
 ```
 
+> **Name conflict?** If `which deploy` resolves to a different script (or shell alias), the new binary won't take precedence. Either remove the conflicting alias (`unalias deploy` and remove the definition from your shell rc) or invoke this CLI as `python -m deploy_cli` / via the absolute path printed by `pipx list`.
+
 ## Quick start
 
 ```bash
