@@ -11,7 +11,7 @@ def test_help_shows_banner():
 def test_version():
     res = CliRunner().invoke(cli, ["--version"])
     assert res.exit_code == 0
-    assert "0.1.0" in res.output
+    assert "0.1.1" in res.output
 
 
 def test_unknown_alias_renders_panel(tmp_config_dir, sample_config, monkeypatch):

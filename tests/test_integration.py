@@ -34,4 +34,4 @@ def test_cli_version_smoke():
     """--version prints the package version cleanly."""
     res = CliRunner().invoke(cli, ["--version"])
     assert res.exit_code == 0
-    assert "0.1.0" in res.output
+    assert "0.1.1" in res.output
