@@ -69,7 +69,6 @@ def _prompt_inflight_choice(inflight: InflightApproval) -> str:
             questionary.Choice("Trigger a new execution (existing one stays pending)", value="new"),
             questionary.Choice("Cancel", value="cancel"),
         ],
-        default="Approve the existing execution",
         style=ui.prompt_style,
     ).ask()
     return answer or "cancel"
